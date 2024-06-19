@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 
 
-# 这里是UNet网络所使用到的
 # 卷积层
 class DoubleConv(nn.Module):
 
