@@ -7,27 +7,6 @@ import torch
 from matplotlib import pyplot as plt
 
 
-# 进行数据集加载和训练验证集划分
-def data_preprocessing(paths: List[str]) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    # 使用正则表达式对文件名进行匹配
-    pattern_images = re.compile(r'.*images.*\.npy')
-    pattern_masks = re.compile(r'.*masks.*\.npy')
-
-    # 加载数据
-    images = [np.load(filename).astype(np.float32) for filename in paths if pattern_images.match(filename)]
-    masks = [np.load(filename).astype(np.int8) for filename in paths if pattern_masks.match(filename)]
-    images = np.concatenate(images, axis=0)
-    masks = np.concatenate(masks, axis=0)
-
-    index = list(range(len(images)))
-    random.shuffle(index)
-
-    train_images, val_images = images[index[:int(0.8 * len(images))]], images[index[int(0.8 * len(images)):]]
-    train_masks, val_masks = masks[index[:int(0.8 * len(images))]], masks[index[int(0.8 * len(images)):]]
-
-    return train_images, train_masks, val_images, val_masks
-
-
 # 显示数据集
 def show_pics(image, mask, nums):  # TODO 这里需要考虑进一步完善
     mask_num = mask.shape[-1] if mask is not None else 0
@@ -57,3 +36,4 @@ def show_pics(image, mask, nums):  # TODO 这里需要考虑进一步完善
 #     return mean.item(), std.item()
 
 
+# def

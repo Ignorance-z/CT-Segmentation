@@ -1,27 +1,33 @@
-import albumentations
-import cv2
+import random
+import re
+from typing import List
+
+import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
 
-from utils.utils import show_pics, data_preprocessing
+from utils.utils import show_pics
 
-# albumentations用于处理np.ndarray类型的数据，在这里经过处理之后大小缩小至256
-SOURCE_SIZE = 512
-TARGET_SIZE = 256
 
-train_augs = albumentations.Compose([
-    albumentations.Rotate(limit=360, p=0.9, border_mode=cv2.BORDER_REPLICATE),
-    albumentations.RandomSizedCrop((int(SOURCE_SIZE * 0.75), SOURCE_SIZE),
-                                   TARGET_SIZE,
-                                   TARGET_SIZE,
-                                   interpolation=cv2.INTER_NEAREST),
-    albumentations.HorizontalFlip(p=0.5),
+# 进行数据集加载和训练验证集划分
+def data_preprocessing(paths: List[str]) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    # 使用正则表达式对文件名进行匹配
+    pattern_images = re.compile(r'.*images.*\.npy')
+    pattern_masks = re.compile(r'.*masks.*\.npy')
 
-])
+    # 加载数据
+    images = [np.load(filename).astype(np.float32) for filename in paths if pattern_images.match(filename)]
+    masks = [np.load(filename).astype(np.int8) for filename in paths if pattern_masks.match(filename)]
+    images = np.concatenate(images, axis=0)
+    masks = np.concatenate(masks, axis=0)
 
-val_augs = albumentations.Compose([
-    albumentations.Resize(TARGET_SIZE, TARGET_SIZE, interpolation=cv2.INTER_NEAREST)
-])
+    index = list(range(len(images)))
+    random.shuffle(index)
+
+    train_images, val_images = images[index[:int(0.8 * len(images))]], images[index[int(0.8 * len(images)):]]
+    train_masks, val_masks = masks[index[:int(0.8 * len(images))]], masks[index[int(0.8 * len(images)):]]
+
+    return train_images, train_masks, val_images, val_masks
 
 
 class CTdataSet(Dataset):
@@ -44,17 +50,17 @@ class CTdataSet(Dataset):
         return image, mask
 
 
-if __name__ == '__main__':
-    train_images, train_masks, val_images, val_masks = data_preprocessing(
-        ['./data/images_medseg.npy', './data/masks_medseg.npy', './data/images_radiopedia.npy',
-         './data/masks_radiopedia.npy']
-    )
-    train_dataset = CTdataSet(train_images, train_masks, augmentations=train_augs)
-    val_dataset = CTdataSet(val_images, val_masks, augmentations=val_augs)
-    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=True)
-
-    for images, masks in train_loader:
-        print(images.shape)
-        show_pics(images, masks, 4)
-        break
+# if __name__ == '__main__':
+#     train_images, train_masks, val_images, val_masks = data_preprocessing(
+#         ['./data/images_medseg.npy', './data/masks_medseg.npy', './data/images_radiopedia.npy',
+#          './data/masks_radiopedia.npy']
+#     )
+#     train_dataset = CTdataSet(train_images, train_masks, augmentations=train_augs)
+#     val_dataset = CTdataSet(val_images, val_masks, augmentations=val_augs)
+#     train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+#     val_loader = DataLoader(val_dataset, batch_size=4, shuffle=True)
+#
+#     for images, masks in train_loader:
+#         print(images.shape)
+#         show_pics(images, masks, 4)
+#         break
