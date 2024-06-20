@@ -20,7 +20,7 @@ def show_pics(image, mask, nums):  # TODO 这里需要考虑进一步完善
         if mask is not None:
             for j in range(mask_num):
                 ax_mask = mask[i, :, :, j]
-                ax[j + 1, i].imshow(ax_mask)
+                ax[j + 1, i].imshow(ax_mask, cmap='gray')
                 ax[j + 1, i].set_xticks([])
                 ax[j + 1, i].set_yticks([])
 
@@ -34,6 +34,3 @@ def show_pics(image, mask, nums):  # TODO 这里需要考虑进一步完善
 #     mean = torch.tensor(data).mean(dim=[0, 1, 2])
 #     std = torch.tensor(data).std(dim=[0, 1, 2])
 #     return mean.item(), std.item()
-
-
-# def
