@@ -1,12 +1,13 @@
 import random
 import re
 from typing import List
+import albumentations
 
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
 
-from utils.utils import show_pics
+from utils.painting import show_pics
 
 
 # 进行数据集加载和训练验证集划分
@@ -35,6 +36,8 @@ class CTdataSet(Dataset):
         self.images = images
         self.masks = masks
         self.augmentations = augmentations
+        self.mean = [0.485]
+        self.std = [0.229]
 
     def __len__(self):
         return len(self.images)
@@ -46,6 +49,9 @@ class CTdataSet(Dataset):
         if self.augmentations:
             sample = self.augmentations(image=image, mask=mask)
             image, mask = sample['image'], sample['mask']
+
+        a = albumentations.Compose([albumentations.Normalize(self.mean, self.std)])
+        image = a(image=image)['image']
 
         return image, mask
 
